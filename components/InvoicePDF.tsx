@@ -61,7 +61,7 @@ const styles = StyleSheet.create({
   },
   logoBox: {
     width: 78,
-    height: 55,
+    height: 78,
     borderWidth: 1,
     borderColor: "#000",
     justifyContent: "center",
@@ -84,7 +84,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
     color: "#000",
   },
-  watermarkOverlay: {
+  fullPageWatermark: {
     position: "absolute",
     top: 0,
     left: 0,
@@ -93,19 +93,19 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  watermarkStamp: {
-    transform: "rotate(-25deg)",
-    borderWidth: 1,
+  watermarkStampLarge: {
+    transform: "rotate(-35deg)",
+    borderWidth: 2.5,
     borderColor: "#c00",
-    borderRadius: 1,
-    paddingHorizontal: 2,
-    paddingVertical: 1,
+    borderRadius: 3,
+    paddingHorizontal: 24,
+    paddingVertical: 10,
   },
-  watermarkText: {
-    fontSize: 6.5,
+  watermarkTextLarge: {
+    fontSize: 20,
     fontWeight: "bold",
     color: "#c00",
-    letterSpacing: 0.3,
+    letterSpacing: 1.5,
   },
   headerCenter: {
     flex: 1,
@@ -288,23 +288,15 @@ export default function InvoicePDF({
   return (
     <Document>
       <Page size="A4" style={styles.page}>
+        <View style={{ position: "relative", flex: 1 }}>
         {/* Header */}
         <View style={styles.headerRow}>
           <View style={styles.headerLeft}>
             <View style={styles.logoBox}>
               {isPremium && logoUrl ? (
                 <Image style={styles.logoImage} src={logoUrl} />
-              ) : isPremium ? (
-                <Text style={styles.logoText}>LOGO</Text>
               ) : (
                 <Text style={styles.logoText}>LOGO</Text>
-              )}
-              {!isPremium && (
-                <View style={styles.watermarkOverlay}>
-                  <View style={styles.watermarkStamp}>
-                    <Text style={styles.watermarkText}>Versão gratuita — OrçamentoPro</Text>
-                  </View>
-                </View>
               )}
             </View>
             <Text style={styles.logoCaption}>Marca da Empresa</Text>
@@ -445,6 +437,15 @@ export default function InvoicePDF({
           <Text style={styles.observacoesTitle}>Observações:</Text>
           <Text style={styles.observacoesContent}>{observacoes}</Text>
         </View>
+
+        {!isPremium && (
+          <View style={styles.fullPageWatermark}>
+            <View style={styles.watermarkStampLarge}>
+              <Text style={styles.watermarkTextLarge}>Versão gratuita — OrçamentoPro</Text>
+            </View>
+          </View>
+        )}
+      </View>
       </Page>
     </Document>
   );
