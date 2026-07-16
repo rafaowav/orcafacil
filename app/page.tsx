@@ -161,14 +161,8 @@ export default function Home() {
   const [lastSessionId, setLastSessionId] = useState("");
   const [copied, setCopied] = useState(false);
   const [checkoutEmail, setCheckoutEmail] = useState("");
-  const [tosAccepted, setTosAccepted] = useState(() => {
-    if (typeof window === "undefined") return false;
-    return localStorage.getItem("orcafacil_policy_accepted") === "true";
-  });
-  const [privacyAccepted, setPrivacyAccepted] = useState(() => {
-    if (typeof window === "undefined") return false;
-    return localStorage.getItem("orcafacil_policy_accepted") === "true";
-  });
+  const [tosAccepted, setTosAccepted] = useState(false);
+  const [privacyAccepted, setPrivacyAccepted] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const verifySession = useCallback(async (sid: string) => {
@@ -235,6 +229,13 @@ export default function Home() {
       window.history.replaceState({}, "", "/");
     }
   }, [verifySession]);
+
+  useEffect(() => {
+    if (localStorage.getItem("orcafacil_policy_accepted") === "true") {
+      setTosAccepted(true);
+      setPrivacyAccepted(true);
+    }
+  }, []);
 
   useEffect(() => {
     if (logoUrl) {

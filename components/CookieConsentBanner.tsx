@@ -1,18 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Cookie, X } from "lucide-react";
 
 const CONSENT_KEY = "orcafacil_cookie_consent";
 
-function isConsentNeeded(): boolean {
-  if (typeof window === "undefined") return false;
-  return !localStorage.getItem(CONSENT_KEY);
-}
-
 export default function CookieConsentBanner() {
-  const [visible, setVisible] = useState(isConsentNeeded);
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    if (!localStorage.getItem(CONSENT_KEY)) {
+      setVisible(true);
+    }
+  }, []);
 
   function accept() {
     localStorage.setItem(CONSENT_KEY, "accepted");
