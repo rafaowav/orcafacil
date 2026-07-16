@@ -44,7 +44,7 @@ const styles = StyleSheet.create({
   page: {
     padding: 24,
     fontFamily: "Helvetica",
-    fontSize: 8,
+    fontSize: 9,
     color: "#000",
     backgroundColor: "#fff",
   },
@@ -126,7 +126,7 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   companyInfoLine: {
-    fontSize: 6.5,
+    fontSize: 7,
     marginBottom: 1,
   },
   headerRight: {
@@ -135,7 +135,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   docMetaLine: {
-    fontSize: 6.5,
+    fontSize: 7,
     marginBottom: 1,
     textAlign: "right",
   },
@@ -157,7 +157,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   clienteLine: {
-    fontSize: 6.5,
+    fontSize: 7,
     marginBottom: 1,
   },
   itemsLabel: {
@@ -176,7 +176,7 @@ const styles = StyleSheet.create({
     borderBottomColor: "#000",
   },
   tableHeaderCell: {
-    fontSize: 6.5,
+    fontSize: 7,
     fontWeight: "bold",
     paddingVertical: 3,
     paddingHorizontal: 4,
@@ -192,7 +192,7 @@ const styles = StyleSheet.create({
     borderBottomColor: "#000",
   },
   tableCell: {
-    fontSize: 6.5,
+    fontSize: 7,
     paddingVertical: 3,
     paddingHorizontal: 4,
   },
@@ -200,8 +200,12 @@ const styles = StyleSheet.create({
     borderRightWidth: 1,
     borderRightColor: "#000",
   },
-  colQtdDesc: {
-    flex: 3,
+  colQtd: {
+    flex: 0.6,
+    textAlign: "center",
+  },
+  colDesc: {
+    flex: 2.4,
   },
   colUnit: {
     flex: 1.2,
@@ -321,7 +325,7 @@ export default function InvoicePDF({
               Tel.: {empresa.phone} | WhatsApp: {empresa.whatsapp || empresa.phone}
             </Text>
             <Text style={styles.companyInfoLine}>
-              E-mail: {empresa.email || "contato@exemplo.com.br"}
+              E-mail: {empresa.email || "vendas@exemplo.com.br"}
             </Text>
             <Text style={styles.companyInfoLine}>
               CNPJ: {empresa.cnpj || "00.000.000/0001-00"}
@@ -397,8 +401,11 @@ export default function InvoicePDF({
         <Text style={styles.itemsLabel}>ITENS</Text>
         <View style={styles.table}>
           <View style={styles.tableHeaderRow}>
-            <Text style={[styles.tableHeaderCell, styles.colQtdDesc, styles.tableHeaderBorderRight]}>
-              Quantidade X Descrição
+            <Text style={[styles.tableHeaderCell, styles.colQtd, styles.tableHeaderBorderRight]}>
+              Qtd
+            </Text>
+            <Text style={[styles.tableHeaderCell, styles.colDesc, styles.tableHeaderBorderRight]}>
+              Descrição
             </Text>
             <Text style={[styles.tableHeaderCell, styles.colUnit, styles.tableHeaderBorderRight]}>
               Valor Unitário
@@ -409,8 +416,11 @@ export default function InvoicePDF({
           </View>
           {servicos.map((servico, index) => (
             <View style={styles.tableRow} key={index}>
-              <Text style={[styles.tableCell, styles.colQtdDesc, styles.tableCellBorderRight]}>
-                {servico.quantity} x {servico.description}
+              <Text style={[styles.tableCell, styles.colQtd, styles.tableCellBorderRight]}>
+                {servico.quantity}
+              </Text>
+              <Text style={[styles.tableCell, styles.colDesc, styles.tableCellBorderRight]}>
+                {servico.description}
               </Text>
               <Text style={[styles.tableCell, styles.colUnit, styles.tableCellBorderRight]}>
                 {formatCurrency(servico.unitPrice)}
