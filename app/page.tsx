@@ -150,9 +150,15 @@ export default function Home() {
   const [logoUrl, setLogoUrl] = useState("");
   const [loadingPremium, setLoadingPremium] = useState(false);
   const [sessionId, setSessionId] = useState("");
+  const [premiumEmail, setPremiumEmail] = useState("");
+  const [restoreInput, setRestoreInput] = useState("");
+  const [restoreMode, setRestoreMode] = useState<"session" | "email">("email");
+  const [lastSessionId, setLastSessionId] = useState("");
+  const [copied, setCopied] = useState(false);
+  const [checkoutEmail, setCheckoutEmail] = useState("");
+  const [showCheckoutForm, setShowCheckoutForm] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Verify premium against Stripe on mount
   const verifySession = useCallback(async (sid: string) => {
     try {
       const res = await fetch(`/api/verify-session?session_id=${sid}`);
@@ -160,6 +166,28 @@ export default function Home() {
       if (data.premium) {
         setIsPremium(true);
         localStorage.setItem("orcafacil_sid", sid);
+        if (data.email) {
+          setPremiumEmail(data.email);
+          localStorage.setItem("orcafacil_email", data.email);
+        }
+        return true;
+      }
+    } catch {}
+    return false;
+  }, []);
+
+  const verifyEmail = useCallback(async (eml: string) => {
+    try {
+      const res = await fetch(`/api/verify-session?email=${encodeURIComponent(eml)}`);
+      const data = await res.json();
+      if (data.premium) {
+        setIsPremium(true);
+        setPremiumEmail(eml);
+        localStorage.setItem("orcafacil_email", eml);
+        if (data.session_id) {
+          setSessionId(data.session_id);
+          localStorage.setItem("orcafacil_sid", data.session_id);
+        }
         return true;
       }
     } catch {}
@@ -168,20 +196,27 @@ export default function Home() {
 
   useEffect(() => {
     const storedSid = localStorage.getItem("orcafacil_sid");
+    const storedEmail = localStorage.getItem("orcafacil_email");
+
     if (storedSid) {
       setSessionId(storedSid);
       verifySession(storedSid);
+    } else if (storedEmail) {
+      setPremiumEmail(storedEmail);
+      verifyEmail(storedEmail);
     }
+
     const storedLogo = localStorage.getItem("orcafacil_logo");
     if (storedLogo) {
       setLogoUrl(storedLogo);
     }
-  }, [verifySession]);
+  }, [verifySession, verifyEmail]);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get("premium") === "success" && params.get("session_id")) {
       const sid = params.get("session_id")!;
+      setLastSessionId(sid);
       verifySession(sid).then((ok) => {
         if (ok) setSessionId(sid);
       });
@@ -206,8 +241,16 @@ export default function Home() {
   }
 
   function handlePremiumCheckout() {
+    if (!checkoutEmail) {
+      setShowCheckoutForm(true);
+      return;
+    }
     setLoadingPremium(true);
-    fetch("/api/create-checkout-session", { method: "POST" })
+    fetch("/api/create-checkout-session", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: checkoutEmail }),
+    })
       .then((res) => res.json())
       .then((data) => {
         if (data.url) {
@@ -506,6 +549,32 @@ export default function Home() {
                     <Check size={14} /> Ativo
                   </div>
                 </div>
+                {lastSessionId && (
+                  <div className="bg-[#f0fdf4] rounded-xl px-4 py-3 border border-[#bbf7d0]">
+                    <p className="text-[11px] font-bold text-[#15803d] mb-1">Pagamento confirmado!</p>
+                    <p className="text-[10px] text-[#166534] mb-2">
+                      Guarde este código para restaurar seu acesso se necessário:
+                    </p>
+                    <div className="flex gap-2">
+                      <code className="flex-1 text-[10px] bg-white rounded-lg px-3 py-2 border border-[#bbf7d0] font-mono text-[#111827] break-all select-all">
+                        {lastSessionId}
+                      </code>
+                      <button
+                        onClick={() => {
+                          navigator.clipboard.writeText(lastSessionId);
+                          setCopied(true);
+                          setTimeout(() => setCopied(false), 2000);
+                        }}
+                        className="h-9 px-3 rounded-lg bg-[#15803d] text-white text-[10px] font-bold hover:bg-[#166534] transition-all active:scale-95 shrink-0"
+                      >
+                        {copied ? "Copiado!" : "Copiar"}
+                      </button>
+                    </div>
+                    <p className="text-[10px] text-[#166534] mt-2">
+                      Esse código também foi enviado no email de confirmação do Stripe.
+                    </p>
+                  </div>
+                )}
                 <div className="flex flex-col gap-1.5">
                   <Label>Logo da Empresa</Label>
                   <input
@@ -545,35 +614,82 @@ export default function Home() {
             ) : (
               <div className="flex flex-col gap-4">
                 <p className="text-xs text-[#6b7280] leading-relaxed">
-                  Remova a marca d'água dos PDFs e adicione o logo da sua empresa por apenas <strong className="text-[#111827]">R$ 9,90</strong> (pagamento único).
+                  Remova a marca d'água dos PDFs e adicione o logo da sua empresa por apenas <strong className="text-[#111827]">R$ 9,90</strong> (pagamento único vitalício).
                 </p>
-                <button
-                  onClick={handlePremiumCheckout}
-                  disabled={loadingPremium}
-                  className="w-full h-12 rounded-xl bg-gradient-to-r from-[#f59e0b] to-[#d97706] text-white text-sm font-bold uppercase tracking-wider shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                >
-                  {loadingPremium ? (
-                    <span>Carregando...</span>
-                  ) : (
-                    <>
-                      <Crown size={16} /> Assinar Premium — R$ 9,90
-                    </>
-                  )}
-                </button>
+
+                {showCheckoutForm && !checkoutEmail && (
+                  <div className="flex flex-col gap-2">
+                    <Label>Seu email para recuperar o acesso</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="seu@email.com"
+                        value={checkoutEmail}
+                        onChange={(e) => setCheckoutEmail(e.target.value)}
+                      />
+                      <button
+                        onClick={handlePremiumCheckout}
+                        disabled={!checkoutEmail || loadingPremium}
+                        className="h-12 px-5 rounded-xl bg-gradient-to-r from-[#f59e0b] to-[#d97706] text-white text-xs font-bold shadow-md hover:shadow-lg transition-all disabled:opacity-50 active:scale-95 shrink-0"
+                      >
+                        {loadingPremium ? "..." : "Ir pagar"}
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {!showCheckoutForm && (
+                  <button
+                    onClick={() => setShowCheckoutForm(true)}
+                    className="w-full h-12 rounded-xl bg-gradient-to-r from-[#f59e0b] to-[#d97706] text-white text-sm font-bold uppercase tracking-wider shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 active:scale-[0.98] flex items-center justify-center gap-2"
+                  >
+                    <Crown size={16} /> Assinar Premium — R$ 9,90
+                  </button>
+                )}
+
                 <details className="group">
                   <summary className="text-[11px] text-[#9ca3af] cursor-pointer hover:text-[#6b7280] transition-colors select-none">
                     Já é premium? Restaurar acesso
                   </summary>
                   <div className="flex gap-2 mt-3">
-                    <Input
-                      placeholder="Cole seu session_id aqui"
-                      value={sessionId}
-                      onChange={(e) => setSessionId(e.target.value)}
-                    />
+                    <div className="flex-1 flex flex-col gap-1.5">
+                      <div className="flex gap-1.5 text-[10px] text-[#9ca3af]">
+                        <button
+                          onClick={() => setRestoreMode("email")}
+                          className={`px-2 py-0.5 rounded ${restoreMode === "email" ? "bg-[#0058be]/10 text-[#0058be] font-bold" : "hover:text-[#6b7280]"}`}
+                        >
+                          Email
+                        </button>
+                        <button
+                          onClick={() => setRestoreMode("session")}
+                          className={`px-2 py-0.5 rounded ${restoreMode === "session" ? "bg-[#0058be]/10 text-[#0058be] font-bold" : "hover:text-[#6b7280]"}`}
+                        >
+                          Código
+                        </button>
+                      </div>
+                      {restoreMode === "email" ? (
+                        <Input
+                          placeholder="seu@email.com"
+                          value={restoreInput}
+                          onChange={(e) => setRestoreInput(e.target.value)}
+                        />
+                      ) : (
+                        <Input
+                          placeholder="session_id"
+                          value={restoreInput}
+                          onChange={(e) => setRestoreInput(e.target.value)}
+                        />
+                      )}
+                    </div>
                     <button
-                      onClick={() => verifySession(sessionId)}
-                      disabled={!sessionId}
-                      className="h-12 px-5 rounded-xl bg-[#0058be] text-white text-xs font-bold hover:bg-[#004a9e] transition-all disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 shrink-0"
+                      onClick={() => {
+                        if (restoreMode === "email") {
+                          verifyEmail(restoreInput);
+                        } else {
+                          verifySession(restoreInput);
+                        }
+                      }}
+                      disabled={!restoreInput}
+                      className="h-12 px-5 rounded-xl bg-[#0058be] text-white text-xs font-bold hover:bg-[#004a9e] transition-all disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 shrink-0 self-end"
                     >
                       Restaurar
                     </button>
