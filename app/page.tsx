@@ -1,8 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import dynamic from "next/dynamic";
-import { PDFDownloadLink } from "@react-pdf/renderer";
 import {
   Briefcase,
   User,
@@ -15,11 +13,8 @@ import {
   Trash2,
 } from "lucide-react";
 import InvoicePDF from "@/components/InvoicePDF";
-
-const PDFViewer = dynamic(
-  () => import("@react-pdf/renderer").then((mod) => mod.PDFViewer),
-  { ssr: false },
-);
+import PdfDownloadButton from "@/components/PdfDownloadButton";
+import PdfPreview from "@/components/PdfPreview";
 
 interface Servico {
   description: string;
@@ -460,7 +455,7 @@ export default function Home() {
 
           {/* Action Buttons */}
           <div className="flex justify-center md:justify-end pt-2 pb-8">
-            <PDFDownloadLink
+            <PdfDownloadButton
               document={<InvoicePDF {...pdfProps} />}
               fileName="orcamento.pdf"
               className="group relative w-full md:w-auto min-w-[240px] bg-gradient-to-r from-[#0058be] to-[#2563eb] text-white text-base font-bold py-4 px-9 rounded-2xl shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 flex items-center justify-center gap-3 active:scale-[0.98] overflow-hidden"
@@ -469,7 +464,7 @@ export default function Home() {
               <FileDown size={22} className="relative z-10" />
               <span className="relative z-10">Gerar PDF e Baixar</span>
               <ArrowRight size={18} className="relative z-10 group-hover:translate-x-1 transition-transform duration-200" />
-            </PDFDownloadLink>
+            </PdfDownloadButton>
           </div>
 
           <div className="text-center pb-4">
@@ -489,11 +484,11 @@ export default function Home() {
           <h2 className="text-xs font-bold uppercase tracking-widest text-[#374151]">Pré-visualização</h2>
         </div>
         <div className="rounded-2xl overflow-hidden shadow-lg border border-[#d1d5db]">
-          <PDFViewer
+          <PdfPreview
             style={{ width: "100%", height: "calc(100vh - 10rem)", border: "none", borderRadius: "16px" }}
           >
             <InvoicePDF {...pdfProps} />
-          </PDFViewer>
+          </PdfPreview>
         </div>
       </div>
     </div>
