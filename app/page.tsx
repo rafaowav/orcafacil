@@ -56,6 +56,43 @@ const defaultCliente = {
 
 const defaultServicos: Servico[] = [emptyServico()];
 
+function maskPhone(value: string): string {
+  const digits = value.replace(/\D/g, "").slice(0, 11);
+  if (digits.length <= 2) return `(${digits}`;
+  if (digits.length <= 6) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
+  if (digits.length <= 10) return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`;
+  return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
+}
+
+function maskCEP(value: string): string {
+  const digits = value.replace(/\D/g, "").slice(0, 8);
+  if (digits.length <= 5) return digits;
+  return `${digits.slice(0, 5)}-${digits.slice(5)}`;
+}
+
+function maskCPFCNPJ(value: string): string {
+  const digits = value.replace(/\D/g, "").slice(0, 14);
+  if (digits.length <= 11) {
+    if (digits.length <= 3) return digits;
+    if (digits.length <= 6) return `${digits.slice(0, 3)}.${digits.slice(3)}`;
+    if (digits.length <= 9) return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6)}`;
+    return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6, 9)}-${digits.slice(9)}`;
+  }
+  if (digits.length <= 3) return digits;
+  if (digits.length <= 6) return `${digits.slice(0, 2)}.${digits.slice(2)}`;
+  if (digits.length <= 9) return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5)}`;
+  if (digits.length <= 12) return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5, 8)}/${digits.slice(8)}`;
+  return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5, 8)}/${digits.slice(8, 12)}-${digits.slice(12)}`;
+}
+
+function maskRG(value: string): string {
+  const digits = value.replace(/\D/g, "").slice(0, 9);
+  if (digits.length <= 2) return digits;
+  if (digits.length <= 5) return `${digits.slice(0, 2)}.${digits.slice(2)}`;
+  if (digits.length <= 8) return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5)}`;
+  return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5, 8)}-${digits.slice(8)}`;
+}
+
 function formatCurrency(value: number): string {
   return value.toLocaleString("pt-BR", {
     style: "currency",
@@ -107,6 +144,10 @@ export default function Home() {
   const [servicos, setServicos] = useState<Servico[]>(defaultServicos);
   const [descontoPercent, setDescontoPercent] = useState(0);
   const [observacoes, setObservacoes] = useState("");
+  const [numeroPedido, setNumeroPedido] = useState("");
+  const [dataPedido, setDataPedido] = useState(
+    new Date().toLocaleDateString("pt-BR")
+  );
 
   function updateEmpresa(field: string, value: string) {
     setEmpresa((prev) => ({ ...prev, [field]: value }));
@@ -142,6 +183,8 @@ export default function Home() {
     isPremium: false,
     descontoPercent,
     observacoes,
+    numeroPedido,
+    dataPedido,
   };
 
   const subtotal = servicos.reduce(
@@ -190,7 +233,7 @@ export default function Home() {
               </div>
               <div className="flex flex-col gap-1.5">
                 <Label>Documento (CPF/CNPJ)</Label>
-                <Input placeholder="00.000.000/0000-00" value={empresa.cnpj} onChange={(e) => updateEmpresa("cnpj", e.target.value)} />
+                <Input placeholder="00.000.000/0000-00" value={empresa.cnpj} onChange={(e) => updateEmpresa("cnpj", maskCPFCNPJ(e.target.value))} />
               </div>
               <div className="flex flex-col gap-1.5">
                 <Label>Endereço</Label>
@@ -198,11 +241,11 @@ export default function Home() {
               </div>
               <div className="flex flex-col gap-1.5">
                 <Label>Telefone</Label>
-                <Input placeholder="(11) 3333-4444" value={empresa.phone} onChange={(e) => updateEmpresa("phone", e.target.value)} />
+                <Input placeholder="(11) 3333-4444" value={empresa.phone} onChange={(e) => updateEmpresa("phone", maskPhone(e.target.value))} />
               </div>
               <div className="flex flex-col gap-1.5">
                 <Label>WhatsApp</Label>
-                <Input placeholder="(11) 99999-8888" value={empresa.whatsapp} onChange={(e) => updateEmpresa("whatsapp", e.target.value)} />
+                <Input placeholder="(11) 99999-8888" value={empresa.whatsapp} onChange={(e) => updateEmpresa("whatsapp", maskPhone(e.target.value))} />
               </div>
               <div className="flex flex-col gap-1.5">
                 <Label>E-mail</Label>
@@ -241,23 +284,23 @@ export default function Home() {
               </div>
               <div className="flex flex-col gap-1.5">
                 <Label>CEP</Label>
-                <Input placeholder="01234-567" value={cliente.cep} onChange={(e) => updateCliente("cep", e.target.value)} />
+                <Input placeholder="01234-567" value={cliente.cep} onChange={(e) => updateCliente("cep", maskCEP(e.target.value))} />
               </div>
               <div className="flex flex-col gap-1.5">
                 <Label>Telefone</Label>
-                <Input placeholder="(11) 4444-5555" value={cliente.telefone} onChange={(e) => updateCliente("telefone", e.target.value)} />
+                <Input placeholder="(11) 4444-5555" value={cliente.telefone} onChange={(e) => updateCliente("telefone", maskPhone(e.target.value))} />
               </div>
               <div className="flex flex-col gap-1.5">
                 <Label>Celular</Label>
-                <Input placeholder="(11) 98888-7777" value={cliente.celular} onChange={(e) => updateCliente("celular", e.target.value)} />
+                <Input placeholder="(11) 98888-7777" value={cliente.celular} onChange={(e) => updateCliente("celular", maskPhone(e.target.value))} />
               </div>
               <div className="flex flex-col gap-1.5">
                 <Label>CPF / CNPJ</Label>
-                <Input placeholder="123.456.789-00" value={cliente.cpfCnpj} onChange={(e) => updateCliente("cpfCnpj", e.target.value)} />
+                <Input placeholder="123.456.789-00" value={cliente.cpfCnpj} onChange={(e) => updateCliente("cpfCnpj", maskCPFCNPJ(e.target.value))} />
               </div>
               <div className="flex flex-col gap-1.5">
                 <Label>RG / Insc. Estadual</Label>
-                <Input placeholder="12.345.678-9" value={cliente.rgInscricao} onChange={(e) => updateCliente("rgInscricao", e.target.value)} />
+                <Input placeholder="12.345.678-9" value={cliente.rgInscricao} onChange={(e) => updateCliente("rgInscricao", maskRG(e.target.value))} />
               </div>
             </div>
           </SectionCard>
@@ -336,6 +379,27 @@ export default function Home() {
                   ))}
                 </tbody>
               </table>
+            </div>
+          </SectionCard>
+
+          {/* Número e Data do Pedido */}
+          <SectionCard>
+            <SectionHeader icon={FileText} title="Dados do Pedido" />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="flex flex-col gap-1.5">
+                <Label>Número do Pedido</Label>
+                <Input placeholder="Ex: 001/2026" value={numeroPedido} onChange={(e) => setNumeroPedido(e.target.value)} />
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <Label>Data do Pedido</Label>
+                <Input type="date" value={dataPedido.split("/").reverse().join("-")} onChange={(e) => {
+                  const d = e.target.value;
+                  if (d) {
+                    const [year, month, day] = d.split("-");
+                    setDataPedido(`${day}/${month}/${year}`);
+                  }
+                }} />
+              </div>
             </div>
           </SectionCard>
 

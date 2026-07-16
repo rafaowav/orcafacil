@@ -1,4 +1,4 @@
-import { Document, Page, View, Text, Image, StyleSheet } from "@react-pdf/renderer";
+import { Document, Page, View, Text, StyleSheet } from "@react-pdf/renderer";
 
 interface Servico {
   description: string;
@@ -34,9 +34,10 @@ interface InvoicePDFProps {
   cliente: ClienteData;
   servicos: Servico[];
   isPremium?: boolean;
-  logoUrl?: string;
   descontoPercent?: number;
   observacoes?: string;
+  numeroPedido?: string;
+  dataPedido?: string;
 }
 
 const styles = StyleSheet.create({
@@ -68,11 +69,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     position: "relative",
   },
-  logoImage: {
-    width: 53,
-    height: 53,
-    objectFit: "contain",
-  },
   logoText: {
     fontSize: 7,
     fontWeight: "bold",
@@ -84,28 +80,40 @@ const styles = StyleSheet.create({
     textAlign: "center",
     color: "#000",
   },
-  fullPageWatermark: {
+  watermarkOverlay: {
     position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
+    top: -8,
+    left: -8,
+    right: -8,
+    bottom: -8,
     justifyContent: "center",
     alignItems: "center",
   },
-  watermarkStampLarge: {
-    transform: "rotate(-35deg)",
-    borderWidth: 2.5,
+  watermarkStamp: {
+    transform: "rotate(-25deg)",
+    borderWidth: 1.5,
     borderColor: "#c00",
-    borderRadius: 3,
-    paddingHorizontal: 24,
-    paddingVertical: 10,
+    borderRadius: 2,
+    paddingHorizontal: 6,
+    paddingVertical: 3,
   },
-  watermarkTextLarge: {
-    fontSize: 20,
+  watermarkText: {
+    fontSize: 7,
     fontWeight: "bold",
     color: "#c00",
-    letterSpacing: 1.5,
+    letterSpacing: 0.5,
+  },
+  footer: {
+    position: "absolute",
+    bottom: 12,
+    left: 0,
+    right: 0,
+    alignItems: "center",
+  },
+  footerText: {
+    fontSize: 6.5,
+    color: "#999",
+    fontStyle: "italic",
   },
   headerCenter: {
     flex: 1,
@@ -274,9 +282,10 @@ export default function InvoicePDF({
   cliente,
   servicos,
   isPremium = false,
-  logoUrl,
   descontoPercent = 0,
   observacoes = "",
+  numeroPedido = "",
+  dataPedido = "",
 }: InvoicePDFProps) {
   const subtotal = servicos.reduce(
     (acc, s) => acc + s.quantity * s.unitPrice,
@@ -288,15 +297,17 @@ export default function InvoicePDF({
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-        <View style={{ position: "relative", flex: 1 }}>
         {/* Header */}
         <View style={styles.headerRow}>
           <View style={styles.headerLeft}>
             <View style={styles.logoBox}>
-              {isPremium && logoUrl ? (
-                <Image style={styles.logoImage} src={logoUrl} />
-              ) : (
-                <Text style={styles.logoText}>LOGO</Text>
+              <Text style={styles.logoText}>LOGO</Text>
+              {!isPremium && (
+                <View style={styles.watermarkOverlay}>
+                  <View style={styles.watermarkStamp}>
+                    <Text style={styles.watermarkText}>Versão gratuita — OrçamentoPro</Text>
+                  </View>
+                </View>
               )}
             </View>
             <Text style={styles.logoCaption}>Marca da Empresa</Text>
@@ -318,7 +329,8 @@ export default function InvoicePDF({
           </View>
           <View style={styles.headerRight}>
             <Text style={styles.docMetaLine}>Página 1 de 1</Text>
-            <Text style={styles.docMetaLine}>Número: 25</Text>
+            {numeroPedido && <Text style={styles.docMetaLine}>Nº: {numeroPedido}</Text>}
+            {dataPedido && <Text style={styles.docMetaLine}>Data: {dataPedido}</Text>}
           </View>
         </View>
 
@@ -439,13 +451,10 @@ export default function InvoicePDF({
         </View>
 
         {!isPremium && (
-          <View style={styles.fullPageWatermark}>
-            <View style={styles.watermarkStampLarge}>
-              <Text style={styles.watermarkTextLarge}>Versão gratuita — OrçamentoPro</Text>
-            </View>
+          <View style={styles.footer}>
+            <Text style={styles.footerText}>Gerado gratuitamente com OrçamentoPRO</Text>
           </View>
         )}
-      </View>
       </Page>
     </Document>
   );
