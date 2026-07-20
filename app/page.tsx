@@ -567,41 +567,6 @@ export default function Home() {
                     </p>
                   </div>
                 )}
-                <div className="flex flex-col gap-1.5">
-                  <Label>Logo da Empresa</Label>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    ref={fileInputRef}
-                    onChange={handleLogoUpload}
-                    className="hidden"
-                  />
-                  <div className="flex items-center gap-3">
-                    {logoUrl ? (
-                      <div className="w-16 h-16 rounded-xl border border-[#d1d5db] overflow-hidden flex items-center justify-center bg-white">
-                        <img src={logoUrl} alt="Logo" className="max-w-full max-h-full object-contain" />
-                      </div>
-                    ) : (
-                      <div className="w-16 h-16 rounded-xl border border-dashed border-[#d1d5db] flex items-center justify-center bg-[#f9fafb]">
-                        <Upload size={18} className="text-[#9ca3af]" />
-                      </div>
-                    )}
-                    <button
-                      onClick={() => fileInputRef.current?.click()}
-                      className="h-10 px-5 rounded-xl bg-[#0058be]/10 text-[#0058be] text-xs font-bold uppercase tracking-wider hover:bg-[#0058be]/20 transition-all active:scale-95"
-                    >
-                      {logoUrl ? "Trocar Logo" : "Upload Logo"}
-                    </button>
-                    {logoUrl && (
-                      <button
-                        onClick={() => { setLogoUrl(""); localStorage.removeItem("orcafacil_logo"); }}
-                        className="h-10 px-4 rounded-xl text-[#ef4444] text-xs font-bold hover:bg-red-50 transition-all active:scale-95"
-                      >
-                        Remover
-                      </button>
-                    )}
-                  </div>
-                </div>
               </div>
             ) : (
               <div className="flex flex-col gap-4">
@@ -725,6 +690,50 @@ export default function Home() {
                 </details>
               </div>
             )}
+          </SectionCard>
+
+          {/* Logo */}
+          <SectionCard>
+            <SectionHeader icon={Upload} title="Logo da Empresa" />
+            <input
+              type="file"
+              accept="image/*"
+              ref={fileInputRef}
+              onChange={handleLogoUpload}
+              className="hidden"
+            />
+            <div className={`flex flex-col gap-3 ${!isPremium ? "opacity-50 pointer-events-none select-none" : ""}`}>
+              <div className="flex items-center gap-3">
+                {logoUrl ? (
+                  <div className="w-16 h-16 rounded-xl border border-[#d1d5db] overflow-hidden flex items-center justify-center bg-white shrink-0">
+                    <img src={logoUrl} alt="Logo" className="max-w-full max-h-full object-contain" />
+                  </div>
+                ) : (
+                  <div className="w-16 h-16 rounded-xl border border-dashed border-[#d1d5db] flex items-center justify-center bg-[#f9fafb] shrink-0">
+                    <Upload size={18} className="text-[#9ca3af]" />
+                  </div>
+                )}
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  className="h-10 px-5 rounded-xl bg-[#0058be]/10 text-[#0058be] text-xs font-bold uppercase tracking-wider hover:bg-[#0058be]/20 transition-all active:scale-95"
+                >
+                  {logoUrl ? "Trocar Logo" : "Upload Logo"}
+                </button>
+                {logoUrl && (
+                  <button
+                    onClick={() => { setLogoUrl(""); localStorage.removeItem("orcafacil_logo"); }}
+                    className="h-10 px-4 rounded-xl text-[#ef4444] text-xs font-bold hover:bg-red-50 transition-all active:scale-95"
+                  >
+                    Remover
+                  </button>
+                )}
+              </div>
+              {!isPremium && (
+                <p className="text-xs text-[#f59e0b] font-medium flex items-center gap-1.5">
+                  <Crown size={14} /> Faça o upgrade para Premium e adicione sua logo
+                </p>
+              )}
+            </div>
           </SectionCard>
 
           {/* Discount + Summary */}
